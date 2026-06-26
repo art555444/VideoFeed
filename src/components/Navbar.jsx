@@ -1,32 +1,19 @@
 import { useRef } from 'react'
-import {
-  IconSearch, IconSun, IconMoon, IconShuffle,
-  IconPlus, IconFilter, IconVideo
-} from './Icons.jsx'
+import { IconSearch, IconShuffle, IconVideo } from './Icons.jsx'
 
-export function Navbar({
-  search, onSearch,
-  theme, onThemeToggle,
-  onShuffle,
-  onAddLinks,
-  showFavsOnly, onFavsToggle,
-  showFilters, onFiltersToggle,
-  hidden,
-}) {
+export function Navbar({ search, onSearch, onShuffle, isShuffled, showFavsOnly, onFavsToggle, hidden }) {
   const inputRef = useRef(null)
 
   return (
-    <nav className={`navbar${hidden ? ' hidden' : ''}`} role="navigation" aria-label="Hauptnavigation">
+    <nav className={`navbar${hidden ? ' hidden' : ''}`} aria-label="Hauptnavigation">
       <div className="navbar-inner">
-        <div className="navbar-logo" aria-label="VideoFeed">
+        <div className="navbar-logo">
           <IconVideo />
           <span>Feed</span>
         </div>
 
         <div className="navbar-search" role="search">
-          <span className="navbar-search-icon" aria-hidden="true">
-            <IconSearch />
-          </span>
+          <span className="navbar-search-icon" aria-hidden="true"><IconSearch /></span>
           <input
             ref={inputRef}
             className="navbar-search-input"
@@ -44,57 +31,29 @@ export function Navbar({
               className="navbar-search-clear"
               onClick={() => { onSearch(''); inputRef.current?.focus() }}
               aria-label="Suche löschen"
-            >
-              ×
-            </button>
+            >×</button>
           )}
         </div>
 
-        <button
-          className={`navbar-icon-btn${showFilters ? ' active' : ''}`}
-          onClick={onFiltersToggle}
-          title="Domain-Filter"
-          aria-label="Domain-Filter"
-          aria-pressed={showFilters}
-        >
-          <IconFilter />
-        </button>
-
+        {/* Favoriten */}
         <button
           className={`navbar-icon-btn${showFavsOnly ? ' active' : ''}`}
           onClick={onFavsToggle}
           title={showFavsOnly ? 'Alle anzeigen' : 'Nur Favoriten'}
-          aria-label={showFavsOnly ? 'Alle anzeigen' : 'Nur Favoriten'}
           aria-pressed={showFavsOnly}
         >
           <HeartIcon filled={showFavsOnly} />
         </button>
 
+        {/* Shuffle — clearly active when on */}
         <button
-          className="navbar-icon-btn"
+          className={`navbar-icon-btn navbar-shuffle${isShuffled ? ' active' : ''}`}
           onClick={onShuffle}
-          title="Zufällige Reihenfolge"
-          aria-label="Zufällige Reihenfolge"
+          title={isShuffled ? 'Originalreihenfolge' : 'Zufällige Reihenfolge'}
+          aria-pressed={isShuffled}
         >
           <IconShuffle />
-        </button>
-
-        <button
-          className="navbar-icon-btn"
-          onClick={onAddLinks}
-          title="Links hinzufügen"
-          aria-label="Links hinzufügen"
-        >
-          <IconPlus />
-        </button>
-
-        <button
-          className="navbar-icon-btn"
-          onClick={onThemeToggle}
-          title={theme === 'dark' ? 'Light Mode' : 'Dark Mode'}
-          aria-label={theme === 'dark' ? 'Light Mode aktivieren' : 'Dark Mode aktivieren'}
-        >
-          {theme === 'dark' ? <IconSun /> : <IconMoon />}
+          {isShuffled && <span className="shuffle-dot" aria-hidden="true" />}
         </button>
       </div>
     </nav>

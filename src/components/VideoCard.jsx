@@ -1,16 +1,16 @@
-import { useState, useRef } from 'react'
+import { useState } from 'react'
 import { getDomain, getSourceName, getDomainColor } from '../utils/helpers.js'
-import {
-  IconHeart, IconCopy, IconExternalLink, IconPlay
-} from './Icons.jsx'
+import { IconHeart, IconCopy, IconExternalLink } from './Icons.jsx'
 
 export function VideoCard({ video, index, total, isFav, onFavToggle, onCopy }) {
   const [thumbErr, setThumbErr] = useState(false)
   const [thumbLoaded, setThumbLoaded] = useState(false)
   const [popHeart, setPopHeart] = useState(false)
+
   const domain = getDomain(video.url)
   const source = getSourceName(domain)
   const domainColor = getDomainColor(domain)
+  const hasThumbnail = video.thumbnail && !thumbErr
 
   function handleFav() {
     onFavToggle(video.id)
@@ -20,141 +20,85 @@ export function VideoCard({ video, index, total, isFav, onFavToggle, onCopy }) {
     }
   }
 
-  const hasThumbnail = video.thumbnail && !thumbErr
-
   return (
     <div className="feed-item">
-      {/* Blurred background */}
+
+      {/* Fullscreen background */}
       {hasThumbnail ? (
-        <div
-          className="card-bg"
-          style={{ backgroundImage: `url(${video.thumbnail})` }}
-        />
+        <>
+          {!thumbLoaded && (
+            <div className="card-bg-solid" style={{
+              background: `linear-gradient(135deg, ${domainColor.from}, ${domainColor.to})`
+            }} />
+          )}
+          <img
+            className="card-fullbg"
+            src={video.thumbnail}
+            alt=""
+            aria-hidden="true"
+            loading="lazy"
+            onLoad={() => setThumbLoaded(true)}
+            onError={() => setThumbErr(true)}
+            style={{ opacity: thumbLoaded ? 1 : 0 }}
+          />
+        </>
       ) : (
-        <div
-          className="card-bg-fallback"
-          style={{
-            background: `linear-gradient(135deg, ${domainColor.from} 0%, ${domainColor.to} 100%)`,
-            opacity: 0.35,
-          }}
-        />
+        <div className="card-bg-solid" style={{
+          background: `linear-gradient(160deg, ${domainColor.from} 0%, ${domainColor.to} 100%)`
+        }} />
       )}
 
       {/* Gradient scrim */}
       <div className="card-scrim" />
 
-      {/* Counter */}
-      <div className="card-counter">{index + 1} / {total}</div>
+      {/* Right-side TikTok action buttons */}
+      <div className="card-actions">
+        <button
+          className={`action-btn${isFav ? ' action-btn--fav' : ''}${popHeart ? ' heart-pop' : ''}`}
+          onClick={handleFav}
+          aria-label={isFav ? 'Favorit entfernen' : 'Favorit hinzufügen'}
+        >
+          <span className="action-icon"><IconHeart filled={isFav} /></span>
+          <span className="action-label">{isFav ? 'Saved' : 'Merken'}</span>
+        </button>
 
-      {/* Main content */}
-      <div className="card-content">
-        {/* Thumbnail area */}
-        <div className="card-thumb-wrap">
-          {hasThumbnail ? (
-            <>
-              {!thumbLoaded && (
-                <div
-                  className="card-thumb skeleton"
-                  style={{ maxWidth: 480, aspectRatio: '16/9' }}
-                />
-              )}
-              <img
-                className="card-thumb"
-                src={video.thumbnail}
-                alt={video.title || 'Video thumbnail'}
-                loading="lazy"
-                onLoad={() => setThumbLoaded(true)}
-                onError={() => setThumbErr(true)}
-                style={{ display: thumbLoaded ? 'block' : 'none' }}
-              />
-            </>
-          ) : (
-            <div
-              className="card-thumb-placeholder"
-              style={{
-                background: `linear-gradient(135deg, ${domainColor.from}22 0%, ${domainColor.to}11 100%)`,
-                borderColor: `${domainColor.from}33`,
-              }}
-            >
-              <div style={{ color: domainColor.from, opacity: 0.8 }}>
-                <IconPlay style={{ width: 48, height: 48 }} />
-              </div>
-              <span style={{
-                fontSize: 13,
-                fontWeight: 600,
-                color: 'rgba(255,255,255,0.5)',
-                textAlign: 'center',
-                padding: '0 16px'
-              }}>
-                Kein Vorschaubild verfügbar
-              </span>
-            </div>
-          )}
-        </div>
+        <button className="action-btn" onClick={() => onCopy(video.url)} aria-label="Link kopieren">
+          <span className="action-icon"><IconCopy /></span>
+          <span className="action-label">Kopieren</span>
+        </button>
 
-        {/* Right-side action buttons */}
-        <div className="card-actions-row">
-          <button
-            className={`card-action-btn ${isFav ? 'fav-active' : ''} ${popHeart ? 'heart-pop' : ''}`}
-            onClick={handleFav}
-            aria-label={isFav ? 'Aus Favoriten entfernen' : 'Zu Favoriten hinzufügen'}
-            title={isFav ? 'Favorit entfernen' : 'Favorit hinzufügen'}
-          >
-            <IconHeart filled={isFav} />
-          </button>
-
-          <button
-            className="card-action-btn"
-            onClick={() => onCopy(video.url)}
-            aria-label="Link kopieren"
-            title="Link kopieren"
-          >
-            <IconCopy />
-          </button>
-
-          <a
-            href={video.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="card-action-btn open-btn"
-            aria-label="Video öffnen"
-            title="Video öffnen"
-          >
-            <IconExternalLink />
-          </a>
-        </div>
-
-        {/* Bottom info */}
-        <div className="card-info">
-          <div className="card-meta">
-            <span
-              className="card-domain-badge"
-              style={{ background: `${domainColor.from}28`, borderColor: `${domainColor.from}44` }}
-            >
-              {source}
-            </span>
-            {video.addedAt && (
-              <span className="card-meta-text">
-                {new Date(video.addedAt).toLocaleDateString('de-DE')}
-              </span>
-            )}
-          </div>
-
-          <h2 className="card-title">
-            {video.title || domain + ' – Video'}
-          </h2>
-
-          <a
-            href={video.url}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="card-open-btn"
-          >
-            <IconExternalLink />
-            Video öffnen
-          </a>
-        </div>
+        <a
+          href={video.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="action-btn action-btn--open"
+          aria-label="Video öffnen"
+        >
+          <span className="action-icon"><IconExternalLink /></span>
+          <span className="action-label">Öffnen</span>
+        </a>
       </div>
+
+      {/* Bottom info */}
+      <div className="card-info">
+        <span className="card-source-tag" style={{
+          background: `${domainColor.from}28`,
+          borderColor: `${domainColor.from}55`,
+        }}>
+          {source}
+        </span>
+        <h2 className="card-title">
+          {video.title || `${source} · Video`}
+        </h2>
+        <a href={video.url} target="_blank" rel="noopener noreferrer" className="card-open-link">
+          <IconExternalLink />
+          Video öffnen
+        </a>
+      </div>
+
+      {/* Counter top-right */}
+      <div className="card-index">{index + 1}<span>/{total}</span></div>
+
     </div>
   )
 }
